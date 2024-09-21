@@ -25,9 +25,15 @@ export class MysqlAdapter extends DialectAdapterBase {
     // is released using `release_lock`. This way we know that the lock is either
     // released by us after successfull or failed migrations OR it's released by
     // MySQL if the process gets killed for some reason.
-    await sql`select get_lock(${sql.lit(LOCK_ID)}, ${sql.lit(
-      LOCK_TIMEOUT_SECONDS,
-    )})`.execute(db)
+    if (process.env.SKIP_GET_LOCK) {
+       await sql`select ${sql.lit(LOCK_ID)}, ${sql.lit(
+         LOCK_TIMEOUT_SECONDS,
+       )}`.execute(db)
+    } else {
+      await sql`select get_lock(${sql.lit(LOCK_ID)}, ${sql.lit(
+        LOCK_TIMEOUT_SECONDS,
+      )})`.execute(db)
+    }
   }
 
   async releaseMigrationLock(
